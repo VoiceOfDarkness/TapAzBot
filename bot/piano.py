@@ -46,7 +46,7 @@ async def send_next_piano(message: types.Message):
         link = doc_dict["link"]
 
         caption = f"<b>{name}</b>\n"
-        caption += f"Цена: <code>{price}</code>\n"
+        caption += f"Цена: <code>{price} AZN</code>\n"
         caption += f"Создано: {created}\n"
         caption += f"ссылка: {link}"
 
