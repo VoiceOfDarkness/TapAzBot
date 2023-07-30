@@ -10,10 +10,14 @@ from database.mongo_db import Database
 
 router = Router()
 
+db = Database()
+
 
 @router.message(Command(commands=["start"]))
 async def start(message: types.Message):
     await message.answer("Tap az'dan melumat toplayan botam")
+    db.set_user_last_viewed_index(message.from_user.id, 0)
+    await next_piano(message)
     await next_piano(message)
 
 
@@ -23,10 +27,12 @@ async def next_piano(message: types.Message):
 
 
 async def send_next_piano(message: types.Message):
+    
+    last_viewed_index = db.get_user_last_viewed_index(message.from_user.id)
+    
     if not hasattr(send_next_piano, "current_index"):
-        send_next_piano.current_index = 0
+        send_next_piano.current_index = last_viewed_index
 
-    db = Database()
     cursor = db.get_all_pianos()
 
     pianos_data = []
@@ -40,9 +46,9 @@ async def send_next_piano(message: types.Message):
         link = doc_dict["link"]
 
         caption = f"<b>{name}</b>\n"
-        caption += f"Price: <code>{price}</code>\n"
-        caption += f"Created: {created}\n"
-        caption += f"Link: {link}"
+        caption += f"Цена: <code>{price}</code>\n"
+        caption += f"Создано: {created}\n"
+        caption += f"ссылка: {link}"
 
         try:
             img_url = doc_dict["image_url"]
@@ -58,17 +64,22 @@ async def send_next_piano(message: types.Message):
     img_url, caption = pianos_data[send_next_piano.current_index]
     send_next_piano.current_index += 1
 
-    await message.answer_photo(
-        img_url,
-        caption=caption,
-        parse_mode=types.UNSET_PARSE_MODE,
-        reply_markup=ReplyKeyboardMarkup(
-            keyboard=[
-                [KeyboardButton(text="Следующий")],
-            ],
-            resize_keyboard=True,
-        ),
-    )
+    if last_viewed_index != len(pianos_data):
+        await message.answer_photo(
+            img_url,
+            caption=caption,
+            parse_mode=types.UNSET_PARSE_MODE,
+            reply_markup=ReplyKeyboardMarkup(
+                keyboard=[
+                    [KeyboardButton(text="Следующий")],
+                ],
+                resize_keyboard=True,
+            ),
+        )
+    else:
+        await message.answer('Вы просмотрели весь список объявлений')
+    
+    db.set_user_last_viewed_index(message.from_user.id, send_next_piano.current_index)
 
 
 async def main():

@@ -14,6 +14,7 @@ password = os.getenv('DB_PASSWORD')
 cluster = MongoClient(f'mongodb+srv://{username}:{password}@database.iirfppa.mongodb.net/?retryWrites=true&w=majority')
 db = cluster['Tap_az']
 collection = db['piano']
+users_collection = db['users']
 
 
 class Database:
@@ -32,3 +33,17 @@ class Database:
     @staticmethod
     def get_all_pianos():
         return collection.find({})
+
+    @staticmethod
+    def get_user_last_viewed_index(user_id):
+        user_data = users_collection.find_one({"user_id": user_id})
+        return user_data.get("last_viewed_index", 0)
+
+    @staticmethod
+    def set_user_last_viewed_index(user_id, last_viewed_index):
+        # Сохранение последнего просмотренного индекса товара для пользователя в базу данных
+        users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {"last_viewed_index": last_viewed_index}},
+            upsert=True,
+        )
