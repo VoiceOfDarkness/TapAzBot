@@ -7,7 +7,6 @@ import schedule
 from bot.piano import main
 from scraper.tap_az import parse_and_save
 
-
 # def worker():
 #     parse()
 

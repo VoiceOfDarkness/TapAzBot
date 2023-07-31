@@ -5,9 +5,9 @@ from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from dotenv import load_dotenv
-from scraper.tap_az import parse_and_save
 
 from database.mongo_db import Database
+from scraper.tap_az import parse_and_save
 
 router = Router()
 

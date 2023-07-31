@@ -1,11 +1,10 @@
-import json
 import re
 
 import requests
 from bs4 import BeautifulSoup
-from utils.url import url_changer
 
 from database.mongo_db import Database
+from utils.url import url_changer
 
 
 def parse_and_save(user_id: str, item_name: str):
