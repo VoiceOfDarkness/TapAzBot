@@ -1,27 +1,24 @@
 import json
 import os
 
-from aiogram import Bot, Dispatcher, Router, types
-from aiogram.filters import Command
+from aiogram import Bot, Dispatcher, types
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
-from dotenv import load_dotenv
 
 from database.mongo_db import Database
 from scraper.tap_az import parse_and_save
 
-router = Router()
 
 db = Database()
 
-token = os.getenv("BOT_TOKEN")
+bot_token = os.getenv("BOT_TOKEN")
 
-dp = Dispatcher()
-dp.include_router(router)
+bot = Bot(token=bot_token)
+Bot.set_current(bot)
 
-bot = Bot(token=token, parse_mode="HTML")
+dp = Dispatcher(bot)
 
 
-@router.message(Command(commands=['start']))
+@dp.message_handler(commands=["start"])
 async def start(message: types.Message):
     await message.answer(
         "Бот для поиска объявлений с Tap az, введите название товара",
@@ -29,16 +26,16 @@ async def start(message: types.Message):
     db.set_user_last_viewed_index(message.from_user.id, 0)
 
 
-@router.message(lambda message: message.text == "Следующий")
+@dp.message_handler(lambda message: message.text == "Следующий")
 async def next_item(message: types.Message):
     await send_next_item(message)
 
 
-@router.message()
+@dp.message_handler()
 async def search_item(message: types.Message):
     item_name = message.text
     user_id = message.from_user.id
-    await message.reply('Запрос принял, собираю данные...')
+    await message.reply("Запрос принял, собираю данные...")
     db.delete_all_items(user_id)
     parse_and_save(user_id, item_name)
     await send_next_item(message)
@@ -85,23 +82,15 @@ async def send_next_item(message: types.Message):
         await message.answer_photo(
             img_url,
             caption=caption,
-            parse_mode=types.UNSET_PARSE_MODE,
+            parse_mode=types.ParseMode.HTML,
             reply_markup=ReplyKeyboardMarkup(
-            keyboard=[
-                [KeyboardButton(text="Следующий")],
-            ],
-            resize_keyboard=True,
-        ),
+                keyboard=[
+                    [KeyboardButton(text="Следующий")],
+                ],
+                resize_keyboard=True,
+            ),
         )
     else:
         await message.answer("Вы просмотрели весь список объявлений")
 
     db.set_user_last_viewed_index(message.from_user.id, send_next_item.current_index)
-
-
-# async def main():
-#     load_dotenv()
-
-    
-#     await bot.delete_webhook()
-#     await dp.start_polling(bot)

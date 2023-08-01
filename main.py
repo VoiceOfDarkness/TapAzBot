@@ -1,51 +1,36 @@
-# import asyncio
-# import logging
-
-
-# if __name__ == "__main__":
-#     logging.basicConfig(level=logging.INFO)
-#     asyncio.run(main())
-from bot.piano import bot, dp
-import os
-
-
-from fastapi import FastAPI
-from aiogram import Dispatcher, Bot, types
 import uvicorn
-
+import os
+from aiogram import types
 from dotenv import load_dotenv
-from typing import Dict, Any
+from fastapi import FastAPI, Request
+
+from bot.piano import bot_token, dp, bot
+
 
 load_dotenv()
 
-
 app = FastAPI()
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-WEBHOOK_HOST = os.getenv('WEBHOOK_HOST') 
-WEBHOOK_PATH = f'/bot/{BOT_TOKEN}' 
-WEBHOOK_URL = f'https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url=https://tapazbot.onrender.com/bot/{BOT_TOKEN}'
+
+WEBHOOK_HOST = os.getenv('WEBHOOk_HOST')
 
 
-@app.on_event('startup')
-async def startup():
-    webhook_info = await bot.get_webhook_info()
-    if webhook_info.url != WEBHOOK_URL:
-        await bot.set_webhook(url=WEBHOOK_URL)
-
-
-@app.post(WEBHOOK_PATH)
-async def bot_webhook(update: Dict[str, Any]):
-    telegram_update = types.Update(**update)
-    Dispatcher.feed_webhook_update(dp)
-    Bot.get_updates(bot)
-    await dp._process_update(telegram_update)
+@app.on_event("startup")
+async def on_startup():
+    webhook_uri = f'{WEBHOOK_HOST}/{bot_token}'
+    await bot.set_webhook(webhook_uri)
 
 
 @app.on_event('shutdown')
 async def on_shutdown():
     await bot.delete_webhook()
-    await bot.session.close()
 
 
-if __name__ == '__main__':
-    uvicorn.run('main:app', host='0.0.0.0', port=8000, reload=True)
+@app.post(f"/{bot_token}")
+async def webhook(request: Request):
+    update = types.Update(**await request.json())
+    await dp.process_update(update)
+    return {"ok": True}
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
