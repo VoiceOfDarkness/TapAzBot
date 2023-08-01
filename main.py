@@ -1,12 +1,12 @@
 # import asyncio
 # import logging
 
-from bot.piano import bot, dp
-import os
 
 # if __name__ == "__main__":
 #     logging.basicConfig(level=logging.INFO)
 #     asyncio.run(main())
+from bot.piano import bot, dp
+import os
 
 
 from fastapi import FastAPI
@@ -20,7 +20,7 @@ from typing import Dict, Any
 app = FastAPI()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 WEBHOOK_HOST = os.getenv('WEBHOOK_HOST') 
-WEBHOOK_PATH = f'/webhook/{BOT_TOKEN}' 
+WEBHOOK_PATH = f'/bot/{BOT_TOKEN}' 
 WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
 
