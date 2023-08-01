@@ -16,6 +16,8 @@ import uvicorn
 from dotenv import load_dotenv
 from typing import Dict, Any
 
+load_dotenv()
+
 
 app = FastAPI()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
