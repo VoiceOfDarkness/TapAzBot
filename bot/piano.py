@@ -13,6 +13,13 @@ router = Router()
 
 db = Database()
 
+token = os.getenv("BOT_TOKEN")
+
+dp = Dispatcher()
+dp.include_router(router)
+
+bot = Bot(token=token, parse_mode="HTML")
+
 
 @router.message(Command(commands=['start']))
 async def start(message: types.Message):
@@ -92,14 +99,9 @@ async def send_next_item(message: types.Message):
     db.set_user_last_viewed_index(message.from_user.id, send_next_item.current_index)
 
 
-async def main():
-    load_dotenv()
+# async def main():
+#     load_dotenv()
 
-    token = os.getenv("BOT_TOKEN")
-
-    dp = Dispatcher()
-    dp.include_router(router)
-
-    bot = Bot(token=token, parse_mode="HTML")
-    await bot.delete_webhook()
-    await dp.start_polling(bot)
+    
+#     await bot.delete_webhook()
+#     await dp.start_polling(bot)

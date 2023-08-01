@@ -1,20 +1,49 @@
-import asyncio
-import logging
-import time
+# import asyncio
+# import logging
 
-import schedule
+from bot.piano import bot, dp
+import os
 
-from bot.piano import main
-from scraper.tap_az import parse_and_save
-
-# def worker():
-#     parse()
+# if __name__ == "__main__":
+#     logging.basicConfig(level=logging.INFO)
+#     asyncio.run(main())
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    asyncio.run(main())
-    # schedule.every(24).hours.do(worker)
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
+from fastapi import FastAPI
+from aiogram import Dispatcher, Bot, types
+import uvicorn
+
+from dotenv import load_dotenv
+from typing import Dict, Any
+
+
+app = FastAPI()
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+WEBHOOK_HOST = os.getenv('WEBHOOK_HOST') 
+WEBHOOK_PATH = f'/webhook/{BOT_TOKEN}' 
+WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
+
+
+@app.on_event('startup')
+async def startup():
+    webhook_info = await bot.get_webhook_info()
+    if webhook_info.url != WEBHOOK_URL:
+        await bot.set_webhook(url=WEBHOOK_URL)
+
+
+@app.post(WEBHOOK_PATH)
+async def bot_webhook(update: Dict[str, Any]):
+    telegram_update = types.Update(**update)
+    Dispatcher.feed_webhook_update(dp)
+    Bot.get_updates(bot)
+    await dp._process_update(telegram_update)
+
+
+@app.on_event('shutdown')
+async def on_shutdown():
+    await bot.delete_webhook()
+    await bot.session.close()
+
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host='0.0.0.0', port=8000, reload=True)
