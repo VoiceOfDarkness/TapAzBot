@@ -23,7 +23,7 @@ app = FastAPI()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 WEBHOOK_HOST = os.getenv('WEBHOOK_HOST') 
 WEBHOOK_PATH = f'/bot/{BOT_TOKEN}' 
-WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
+WEBHOOK_URL = f'https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url=https://tapazbot.onrender.com/bot/{BOT_TOKEN}'
 
 
 @app.on_event('startup')
