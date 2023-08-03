@@ -7,7 +7,6 @@ from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from database.mongo_db import Database
 from scraper.tap_az import parse_and_save
 
-
 db = Database()
 
 bot_token = os.getenv("BOT_TOKEN")

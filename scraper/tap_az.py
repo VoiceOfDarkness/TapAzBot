@@ -1,19 +1,31 @@
 import re
 
-import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
 
 from database.mongo_db import Database
 from utils.url import url_changer
 
 
 def parse_and_save(user_id: str, item_name: str):
+    
     changed_url = url_changer(item_name)
-    url = f'https://tap.az/elanlar?order=&q%5Buser_id%5D=&q%5Bcontact_id%5D=&q%5Bprice%5D%5B%5D=&q%5Bprice%5D%5B%5D=&q%5Bregion_id%5D=&q%5Bkeywords%5D={changed_url}'
-    req = requests.get(url=url)
-    soup = BeautifulSoup(req.text, 'html.parser')
-    pianos = soup.find_all('div', class_='products-i rounded')
+    
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
 
+    # Инициализация WebDriver
+    driver = webdriver.Chrome(options=options)
+
+    url = f'https://tap.az/elanlar?order=&q%5Buser_id%5D=&q%5Bcontact_id%5D=&q%5Bprice%5D%5B%5D=&q%5Bprice%5D%5B%5D=&q%5Bregion_id%5D=&q%5Bkeywords%5D={changed_url}'
+
+    # Запрос к странице
+    driver.get(url)
+
+    # Получение HTML содержимого страницы
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+    pianos = soup.find_all('div', class_='products-i rounded')
     items = []
 
     for piano in pianos:
@@ -29,3 +41,4 @@ def parse_and_save(user_id: str, item_name: str):
 
     db = Database()
     db.insert_items(user_id, items)
+    driver.quit()

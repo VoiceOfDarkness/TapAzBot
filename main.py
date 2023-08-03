@@ -1,11 +1,11 @@
-import uvicorn
 import os
+
+import uvicorn
 from aiogram import types
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 
-from bot.piano import bot_token, dp, bot
-
+from bot.piano import bot, bot_token, dp
 
 load_dotenv()
 
