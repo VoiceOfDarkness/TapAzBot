@@ -2,7 +2,7 @@ import json
 import os
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 
 from database.mongo_db import Database
 from scraper.tap_az import parse_and_save
@@ -61,11 +61,10 @@ async def send_next_item(message: types.Message):
         caption = f"<b>{name}</b>\n"
         caption += f"Цена: <code>{price} AZN</code>\n"
         caption += f"Создано: {created}\n"
-        caption += f"ссылка: {link}"
 
         try:
             img_url = doc_dict["image_url"]
-            items_data.append((img_url, caption))
+            items_data.append((img_url, caption, link))
         except KeyError:
             continue
 
@@ -74,20 +73,20 @@ async def send_next_item(message: types.Message):
         return
 
     send_next_item.current_index %= len(items_data)
-    img_url, caption = items_data[send_next_item.current_index]
+    img_url, caption, item_link = items_data[send_next_item.current_index]
     send_next_item.current_index += 1
 
     if last_viewed_index != len(items_data):
+        
+        inline_keyboard = InlineKeyboardMarkup().add(
+            InlineKeyboardButton(text="Перейти", url=item_link)
+        )
+        
         await message.answer_photo(
             img_url,
             caption=caption,
             parse_mode=types.ParseMode.HTML,
-            reply_markup=ReplyKeyboardMarkup(
-                keyboard=[
-                    [KeyboardButton(text="Следующий")],
-                ],
-                resize_keyboard=True,
-            ),
+            reply_markup=inline_keyboard,  # Use inline_keyboard here
         )
     else:
         await message.answer("Вы просмотрели весь список объявлений")
