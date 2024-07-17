@@ -17,25 +17,6 @@ collection = db['piano']
 users_collection = db['users']
 
 
-import os
-from typing import List
-
-from dotenv import load_dotenv
-from pymongo import MongoClient
-
-load_dotenv()
-
-
-username = os.getenv('DB_USERNAME')
-password = os.getenv('DB_PASSWORD')
-
-
-cluster = MongoClient(f'mongodb+srv://{username}:{password}@database.iirfppa.mongodb.net/?retryWrites=true&w=majority')
-db = cluster['Tap_az']
-collection = db['piano']
-users_collection = db['users']
-
-
 class Database:
     @staticmethod
     def insert_items(user_id, items: List):
